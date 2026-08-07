@@ -41,25 +41,18 @@ This resume includes:
 - Alignment
 - Mailto Link
 
-## 📂 Project Structure
+## 🚀 How to Run
 
-```text
-Resume/
-│
-├── resume.html
-├── resume pic.jpeg
-└── lana_sign.jpeg
-
-🚀 How to Run
 Clone or download this repository.
 Open the project folder.
 Make sure resume.html, resume pic.jpeg, and lana_sign.jpeg are in the same folder.
 Open resume.html in any web browser.
-🎯 Purpose
+
+## 🎯 Purpose
 
 This project was created to practice HTML fundamentals and build a personal resume webpage using basic web development concepts.
 
-👩‍💻 Author
+## 👩‍💻 Author
 
 Lana Shree Ganesan
 
