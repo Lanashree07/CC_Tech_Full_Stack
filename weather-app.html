@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Modern Weather App using Open-Meteo API">
+    <title>WeatherNow | Weather App</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+
+            background:
+                radial-gradient(circle at top left, #6dd5ed, transparent 35%),
+                radial-gradient(circle at bottom right, #2193b0, transparent 35%),
+                linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+
+            color: #ffffff;
+        }
+
+        .weather-app {
+            width: 100%;
+            max-width: 440px;
+            padding: 30px;
+            border-radius: 28px;
+
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .app-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .app-header .logo {
+            font-size: 48px;
+            margin-bottom: 8px;
+        }
+
+        .app-header h1 {
+            font-size: 30px;
+            font-weight: 700;
+        }
+
+        .app-header p {
+            margin-top: 6px;
+            font-size: 14px;
+            opacity: 0.75;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 14px 16px;
+            border: none;
+            outline: none;
+            border-radius: 14px;
+
+            background: rgba(255, 255, 255, 0.95);
+            color: #1f2937;
+            font-size: 15px;
+        }
+
+        .search-box input::placeholder {
+            color: #777;
+        }
+
+        .search-box button {
+            border: none;
+            outline: none;
+            cursor: pointer;
+
+            padding: 0 18px;
+            border-radius: 14px;
+
+            background: #ffffff;
+            color: #203a43;
+
+            font-size: 20px;
+            font-weight: bold;
+
+            transition: 0.25s ease;
+        }
+
+        .search-box button:hover {
+            transform: translateY(-2px);
+            background: #eaf8ff;
+        }
+
+        #result {
+            min-height: 250px;
+        }
+
+        .weather-card {
+            text-align: center;
+        }
+
+        .location {
+            font-size: 21px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .date {
+            font-size: 13px;
+            opacity: 0.7;
+            margin-bottom: 20px;
+        }
+
+        .weather-icon {
+            font-size: 75px;
+            margin-bottom: 5px;
+        }
+
+        .temperature {
+            font-size: 64px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .condition {
+            margin-top: 10px;
+            font-size: 17px;
+            font-weight: 500;
+        }
+
+        .weather-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 28px;
+        }
+
+        .detail {
+            padding: 15px 8px;
+            border-radius: 16px;
+
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .detail-icon {
+            font-size: 22px;
+            margin-bottom: 6px;
+        }
+
+        .detail-value {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .detail-label {
+            font-size: 11px;
+            opacity: 0.65;
+            margin-top: 3px;
+        }
+
+        .welcome {
+            text-align: center;
+            padding: 45px 10px;
+        }
+
+        .welcome-icon {
+            font-size: 65px;
+            margin-bottom: 15px;
+        }
+
+        .welcome h2 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .welcome p {
+            font-size: 13px;
+            opacity: 0.7;
+            line-height: 1.6;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 70px 10px;
+        }
+
+        .loader {
+            width: 42px;
+            height: 42px;
+            border: 4px solid rgba(255, 255, 255, 0.25);
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: auto;
+        }
+
+        .loading p {
+            margin-top: 15px;
+            font-size: 14px;
+            opacity: 0.75;
+        }
+
+        .error {
+            text-align: center;
+            padding: 55px 10px;
+        }
+
+        .error-icon {
+            font-size: 50px;
+            margin-bottom: 12px;
+        }
+
+        .error h3 {
+            margin-bottom: 7px;
+        }
+
+        .error p {
+            font-size: 13px;
+            opacity: 0.7;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 11px;
+            opacity: 0.55;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .weather-app {
+                padding: 22px;
+                border-radius: 22px;
+            }
+
+            .app-header h1 {
+                font-size: 26px;
+            }
+
+            .search-box button {
+                padding: 0 15px;
+            }
+
+            .temperature {
+                font-size: 55px;
+            }
+
+            .weather-details {
+                gap: 7px;
+            }
+
+            .detail {
+                padding: 12px 5px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="weather-app">
+
+        <header class="app-header">
+            <div class="logo">🌤️</div>
+            <h1>WeatherNow</h1>
+            <p>Check real-time weather anywhere</p>
+        </header>
+
+        <div class="search-box">
+            <input
+                type="text"
+                id="cityInput"
+                placeholder="Enter city name..."
+                autocomplete="off"
+            >
+
+            <button onclick="getWeather()" aria-label="Search weather">
+                🔍
+            </button>
+        </div>
+
+        <section id="result">
+
+            <div class="welcome">
+                <div class="welcome-icon">🌎</div>
+                <h2>Search for a city</h2>
+                <p>
+                    Enter a city name above to see the<br>
+                    latest weather information.
+                </p>
+            </div>
+
+        </section>
+
+        <footer class="footer">
+            Powered by Open-Meteo API
+        </footer>
+
+    </main>
+
+
+    <script>
+
+        const cityInput = document.getElementById("cityInput");
+        const result = document.getElementById("result");
+
+
+        // Allow Enter key to search
+        cityInput.addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                getWeather();
+            }
+        });
+
+
+        async function getWeather() {
+
+            const city = cityInput.value.trim();
+
+            if (!city) {
+                showError("Please enter a city name.");
+                return;
+            }
+
+            showLoading();
+
+            try {
+
+                // Step 1: Get city coordinates
+                const geoResponse = await fetch(
+                    `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`
+                );
+
+                if (!geoResponse.ok) {
+                    throw new Error("Unable to connect to weather service.");
+                }
+
+                const geoData = await geoResponse.json();
+
+                if (!geoData.results || geoData.results.length === 0) {
+                    showError("City not found. Please try another city.");
+                    return;
+                }
+
+                const location = geoData.results[0];
+
+                const {
+                    latitude,
+                    longitude,
+                    name,
+                    country
+                } = location;
+
+
+                // Step 2: Get current weather
+                const weatherResponse = await fetch(
+                    `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,weather_code&timezone=auto`
+                );
+
+                if (!weatherResponse.ok) {
+                    throw new Error("Unable to fetch weather information.");
+                }
+
+                const weatherData = await weatherResponse.json();
+
+                const current = weatherData.current;
+
+
+                // Weather information
+                const temperature = current.temperature_2m;
+                const feelsLike = current.apparent_temperature;
+                const humidity = current.relative_humidity_2m;
+                const windSpeed = current.wind_speed_10m;
+                const weatherCode = current.weather_code;
+
+
+                const weatherInfo = getWeatherInfo(weatherCode);
+
+
+                // Display weather
+                result.innerHTML = `
+
+                    <div class="weather-card">
+
+                        <div class="location">
+                            📍 ${name}, ${country}
+                        </div>
+
+                        <div class="date">
+                            ${formatDate()}
+                        </div>
+
+                        <div class="weather-icon">
+                            ${weatherInfo.icon}
+                        </div>
+
+                        <div class="temperature">
+                            ${Math.round(temperature)}°C
+                        </div>
+
+                        <div class="condition">
+                            ${weatherInfo.description}
+                        </div>
+
+                        <div class="weather-details">
+
+                            <div class="detail">
+                                <div class="detail-icon">🌡️</div>
+                                <div class="detail-value">
+                                    ${Math.round(feelsLike)}°C
+                                </div>
+                                <div class="detail-label">
+                                    Feels Like
+                                </div>
+                            </div>
+
+                            <div class="detail">
+                                <div class="detail-icon">💧</div>
+                                <div class="detail-value">
+                                    ${humidity}%
+                                </div>
+                                <div class="detail-label">
+                                    Humidity
+                                </div>
+                            </div>
+
+                            <div class="detail">
+                                <div class="detail-icon">💨</div>
+                                <div class="detail-value">
+                                    ${windSpeed} km/h
+                                </div>
+                                <div class="detail-label">
+                                    Wind
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                `;
+
+            } catch (error) {
+
+                showError(error.message);
+
+            }
+        }
+
+
+        // Convert Open-Meteo weather codes
+        function getWeatherInfo(code) {
+
+            const weather = {
+
+                0: {
+                    icon: "☀️",
+                    description: "Clear Sky"
+                },
+
+                1: {
+                    icon: "🌤️",
+                    description: "Mainly Clear"
+                },
+
+                2: {
+                    icon: "⛅",
+                    description: "Partly Cloudy"
+                },
+
+                3: {
+                    icon: "☁️",
+                    description: "Overcast"
+                },
+
+                45: {
+                    icon: "🌫️",
+                    description: "Foggy"
+                },
+
+                48: {
+                    icon: "🌫️",
+                    description: "Depositing Rime Fog"
+                },
+
+                51: {
+                    icon: "🌦️",
+                    description: "Light Drizzle"
+                },
+
+                53: {
+                    icon: "🌦️",
+                    description: "Moderate Drizzle"
+                },
+
+                55: {
+                    icon: "🌧️",
+                    description: "Heavy Drizzle"
+                },
+
+                61: {
+                    icon: "🌧️",
+                    description: "Light Rain"
+                },
+
+                63: {
+                    icon: "🌧️",
+                    description: "Moderate Rain"
+                },
+
+                65: {
+                    icon: "🌧️",
+                    description: "Heavy Rain"
+                },
+
+                71: {
+                    icon: "🌨️",
+                    description: "Light Snow"
+                },
+
+                73: {
+                    icon: "🌨️",
+                    description: "Moderate Snow"
+                },
+
+                75: {
+                    icon: "❄️",
+                    description: "Heavy Snow"
+                },
+
+                80: {
+                    icon: "🌦️",
+                    description: "Rain Showers"
+                },
+
+                81: {
+                    icon: "🌧️",
+                    description: "Moderate Rain Showers"
+                },
+
+                82: {
+                    icon: "⛈️",
+                    description: "Heavy Rain Showers"
+                },
+
+                95: {
+                    icon: "⛈️",
+                    description: "Thunderstorm"
+                },
+
+                96: {
+                    icon: "⛈️",
+                    description: "Thunderstorm with Hail"
+                },
+
+                99: {
+                    icon: "⛈️",
+                    description: "Severe Thunderstorm"
+                }
+
+            };
+
+            return weather[code] || {
+                icon: "🌡️",
+                description: "Unknown Weather"
+            };
+        }
+
+
+        function formatDate() {
+
+            const today = new Date();
+
+            return today.toLocaleDateString("en-IN", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric"
+            });
+        }
+
+
+        function showLoading() {
+
+            result.innerHTML = `
+                <div class="loading">
+                    <div class="loader"></div>
+                    <p>Fetching weather data...</p>
+                </div>
+            `;
+        }
+
+
+        function showError(message) {
+
+            result.innerHTML = `
+                <div class="error">
+                    <div class="error-icon">⚠️</div>
+                    <h3>Oops!</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+    </script>
+
+</body>
+</html>
